@@ -1,10 +1,8 @@
 import { typeListaDefeitos } from "../types/typeListaDefeitos";
 
-
-
 export const ListaDefeitos: typeListaDefeitos[] = [
-  { item: 'Bolt',  defeito: ['Faltando', 'Mal apertado', 'Extra part']}, 
-  { item: 'Nut',  defeito: ['Faltando', 'Mal apertado', 'Extra part']},
-  { item: 'Gromet', defeito: ['Faltando', 'Mal encaixado', 'Extra part'] },
-  { item: 'Conector', defeito: ['Solto', 'Mal encaixado', 'Quebrado']}
+  { item: "Bolt", defeito: ["Faltando", "Solto", "Extra part"] },
+  { item: "Nut", defeito: ["Faltando", "Solto", "Extra part"] },
+  { item: "Grommet", defeito: ["Faltando", "Mal encaixado", "Extra part"] },
+  { item: "Conector", defeito: ["Mal encaixado", "Solto", "Quebrado"] },
 ];
