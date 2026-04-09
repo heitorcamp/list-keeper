@@ -8,6 +8,7 @@ export type RegistroDefeito = {
   sequencia: string;
   item: string;
   defeito: string;
+  seguranca: boolean;
   detalhes: string;
   vin: string;
   hmcTl: string;

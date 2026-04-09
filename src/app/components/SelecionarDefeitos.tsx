@@ -18,6 +18,7 @@ type DraftRegistro = {
   sequencia: string;
   item: string;
   defeito: string;
+  seguranca: boolean;
   detalhes: string;
   vin: string;
   hmcTl: string;
@@ -32,6 +33,7 @@ const createDraft = (): DraftRegistro => ({
   sequencia: "",
   item: "",
   defeito: "",
+  seguranca: false,
   detalhes: "",
   vin: "",
   hmcTl: "",
@@ -54,7 +56,26 @@ export const ProcessosItens = ({ processos }: Props) => {
     }
 
     try {
-      setRegistros(JSON.parse(savedData));
+      const parsedData = JSON.parse(savedData) as Array<
+        Partial<RegistroDefeito> & Pick<RegistroDefeito, "id" | "sequencia" | "item" | "defeito" | "createdAt" | "updatedAt">
+      >;
+
+      setRegistros(
+        parsedData.map((registro) => ({
+          id: registro.id,
+          sequencia: registro.sequencia,
+          item: registro.item,
+          defeito: registro.defeito,
+          seguranca: Boolean(registro.seguranca),
+          detalhes: registro.detalhes ?? "",
+          vin: registro.vin ?? "",
+          hmcTl: registro.hmcTl ?? "",
+          hmcTm: registro.hmcTm ?? "",
+          processo: registro.processo ?? "",
+          createdAt: registro.createdAt,
+          updatedAt: registro.updatedAt,
+        })),
+      );
     } catch {
       localStorage.removeItem(STORAGE_KEY);
     }
@@ -96,6 +117,7 @@ export const ProcessosItens = ({ processos }: Props) => {
     setDraft((currentDraft) => ({
       ...currentDraft,
       defeito,
+      seguranca: false,
       createdAt: new Date().toISOString(),
     }));
     setEtapa("registro");
@@ -120,6 +142,7 @@ export const ProcessosItens = ({ processos }: Props) => {
       sequencia: draft.sequencia,
       item: draft.item,
       defeito: draft.defeito,
+      seguranca: draft.seguranca,
       detalhes: draft.detalhes,
       vin: draft.vin,
       hmcTl: draft.hmcTl,
@@ -355,6 +378,7 @@ export const ProcessosItens = ({ processos }: Props) => {
               <thead className="bg-slate-100 text-slate-700">
                 <tr>
                   <DraftHeader>SEQ</DraftHeader>
+                  <DraftHeader>SEG.</DraftHeader>
                   <DraftHeader>VIN</DraftHeader>
                   <DraftHeader>ITEM</DraftHeader>
                   <DraftHeader>DEFEITO</DraftHeader>
@@ -368,6 +392,23 @@ export const ProcessosItens = ({ processos }: Props) => {
                 <tr className="border-t border-slate-300">
                   <DraftCell className="font-semibold text-slate-900">
                     {draft.sequencia}
+                  </DraftCell>
+                  <DraftCell>
+                    <button
+                      className={`h-12 rounded-xl px-3 text-sm font-semibold transition ${
+                        draft.seguranca
+                          ? "bg-rose-500 text-white hover:bg-rose-400"
+                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      }`}
+                      onClick={() =>
+                        setDraft((currentDraft) => ({
+                          ...currentDraft,
+                          seguranca: !currentDraft.seguranca,
+                        }))
+                      }
+                    >
+                      {draft.seguranca ? "Segurança" : "Normal"}
+                    </button>
                   </DraftCell>
                   <DraftCell>
                     <CampoLinha
@@ -386,14 +427,30 @@ export const ProcessosItens = ({ processos }: Props) => {
                     <CampoLinha
                       value={draft.hmcTl}
                       placeholder="add hmc tl"
-                      onChange={(valor) => atualizarCampoDraft("hmcTl", valor)}
+                      compact
+                      maxLength={4}
+                      inputMode="numeric"
+                      onChange={(valor) =>
+                        atualizarCampoDraft(
+                          "hmcTl",
+                          valor.replace(/\D/g, "").slice(0, 4),
+                        )
+                      }
                     />
                   </DraftCell>
                   <DraftCell>
                     <CampoLinha
                       value={draft.hmcTm}
                       placeholder="add hmc tm"
-                      onChange={(valor) => atualizarCampoDraft("hmcTm", valor)}
+                      compact
+                      maxLength={4}
+                      inputMode="numeric"
+                      onChange={(valor) =>
+                        atualizarCampoDraft(
+                          "hmcTm",
+                          valor.replace(/\D/g, "").slice(0, 4),
+                        )
+                      }
                     />
                   </DraftCell>
                   <DraftCell>
@@ -413,6 +470,28 @@ export const ProcessosItens = ({ processos }: Props) => {
 
           <div className="grid gap-3 md:hidden">
             <MobileDraftCard label="SEQ" value={draft.sequencia} />
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Item de segurança
+                </p>
+                <button
+                  className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                    draft.seguranca
+                      ? "bg-rose-500 text-white hover:bg-rose-400"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                  onClick={() =>
+                    setDraft((currentDraft) => ({
+                      ...currentDraft,
+                      seguranca: !currentDraft.seguranca,
+                    }))
+                  }
+                >
+                  {draft.seguranca ? "Sim" : "Não"}
+                </button>
+              </div>
+            </div>
             <MobileDraftInput
               label="VIN"
               value={draft.vin}
@@ -424,14 +503,24 @@ export const ProcessosItens = ({ processos }: Props) => {
             <MobileDraftInput
               label="HMC TL"
               value={draft.hmcTl}
-              placeholder="add hmc tl"
-              onChange={(valor) => atualizarCampoDraft("hmcTl", valor)}
+              placeholder="0000"
+              compact
+              maxLength={4}
+              inputMode="numeric"
+              onChange={(valor) =>
+                atualizarCampoDraft("hmcTl", valor.replace(/\D/g, "").slice(0, 4))
+              }
             />
             <MobileDraftInput
               label="HMC TM"
               value={draft.hmcTm}
-              placeholder="add hmc tm"
-              onChange={(valor) => atualizarCampoDraft("hmcTm", valor)}
+              placeholder="0000"
+              compact
+              maxLength={4}
+              inputMode="numeric"
+              onChange={(valor) =>
+                atualizarCampoDraft("hmcTm", valor.replace(/\D/g, "").slice(0, 4))
+              }
             />
             <MobileDraftInput
               label="PROCESSO"
@@ -518,13 +607,27 @@ const StatusCard = ({
 type CampoLinhaProps = {
   placeholder: string;
   value: string;
+  compact?: boolean;
+  maxLength?: number;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   onChange: (valor: string) => void;
 };
 
-const CampoLinha = ({ placeholder, value, onChange }: CampoLinhaProps) => (
+const CampoLinha = ({
+  placeholder,
+  value,
+  compact = false,
+  maxLength,
+  inputMode,
+  onChange,
+}: CampoLinhaProps) => (
   <input
-    className="h-12 w-full rounded-xl border border-slate-300 bg-emerald-50 px-3 text-center text-base font-semibold text-slate-900 outline-none placeholder:text-emerald-700"
+    className={`h-12 rounded-xl border border-slate-300 bg-emerald-50 px-3 text-center text-base font-semibold text-slate-900 outline-none placeholder:text-emerald-700 ${
+      compact ? "mx-auto w-full max-w-[110px]" : "w-full"
+    }`}
     value={value}
+    maxLength={maxLength}
+    inputMode={inputMode}
     onChange={(event) => onChange(event.target.value)}
     placeholder={placeholder}
   />
@@ -569,6 +672,9 @@ type MobileDraftInputProps = {
   label: string;
   value: string;
   placeholder: string;
+  compact?: boolean;
+  maxLength?: number;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   onChange: (valor: string) => void;
 };
 
@@ -576,6 +682,9 @@ const MobileDraftInput = ({
   label,
   value,
   placeholder,
+  compact = false,
+  maxLength,
+  inputMode,
   onChange,
 }: MobileDraftInputProps) => (
   <label className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -583,8 +692,12 @@ const MobileDraftInput = ({
       {label}
     </span>
     <input
-      className="mt-2 h-12 w-full rounded-xl border border-slate-300 bg-white px-3 text-center text-base font-semibold text-slate-900 outline-none placeholder:text-slate-400"
+      className={`mt-2 h-12 rounded-xl border border-slate-300 bg-white px-3 text-center text-base font-semibold text-slate-900 outline-none placeholder:text-slate-400 ${
+        compact ? "w-full max-w-[110px]" : "w-full"
+      }`}
       value={value}
+      maxLength={maxLength}
+      inputMode={inputMode}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
     />
