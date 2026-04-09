@@ -374,7 +374,7 @@ export const ProcessosItens = ({ processos }: Props) => {
           </div>
 
           <div className="hidden overflow-x-auto rounded-[22px] border border-slate-300 md:block">
-            <table className="min-w-[1180px] w-full border-collapse text-center">
+            <table className="min-w-[900px] w-full border-collapse text-center">
               <thead className="bg-slate-100 text-slate-700">
                 <tr>
                   <DraftHeader>SEQ</DraftHeader>
@@ -413,20 +413,23 @@ export const ProcessosItens = ({ processos }: Props) => {
                   <DraftCell>
                     <CampoLinha
                       value={draft.vin}
-                      placeholder="add vin"
-                      onChange={(valor) => atualizarCampoDraft("vin", valor)}
+                      placeholder="ABC123456"
+                      compact
+                      maxLength={9}
+                      className="max-w-[128px]"
+                      onChange={(valor) => atualizarCampoDraft("vin", normalizeVin(valor))}
                     />
                   </DraftCell>
-                  <DraftCell className="font-medium text-slate-900">
+                  <DraftCell className="max-w-[92px] whitespace-normal text-sm font-medium leading-tight text-slate-900">
                     {draft.item}
                   </DraftCell>
-                  <DraftCell className="font-medium text-slate-900">
+                  <DraftCell className="max-w-[110px] whitespace-normal text-sm font-medium leading-tight text-slate-900">
                     {draft.defeito}
                   </DraftCell>
                   <DraftCell>
                     <CampoLinha
                       value={draft.hmcTl}
-                      placeholder="add hmc tl"
+                      placeholder="0000"
                       compact
                       maxLength={4}
                       inputMode="numeric"
@@ -441,7 +444,7 @@ export const ProcessosItens = ({ processos }: Props) => {
                   <DraftCell>
                     <CampoLinha
                       value={draft.hmcTm}
-                      placeholder="add hmc tm"
+                      placeholder="0000"
                       compact
                       maxLength={4}
                       inputMode="numeric"
@@ -456,8 +459,12 @@ export const ProcessosItens = ({ processos }: Props) => {
                   <DraftCell>
                     <CampoLinha
                       value={draft.processo}
-                      placeholder="processo"
-                      onChange={(valor) => atualizarCampoDraft("processo", valor)}
+                      placeholder="00AA"
+                      compact
+                      maxLength={4}
+                      onChange={(valor) =>
+                        atualizarCampoDraft("processo", normalizeProcesso(valor))
+                      }
                     />
                   </DraftCell>
                   <DraftCell className="text-slate-600">
@@ -495,8 +502,9 @@ export const ProcessosItens = ({ processos }: Props) => {
             <MobileDraftInput
               label="VIN"
               value={draft.vin}
-              placeholder="add vin"
-              onChange={(valor) => atualizarCampoDraft("vin", valor)}
+              placeholder="ABC123456"
+              maxLength={9}
+              onChange={(valor) => atualizarCampoDraft("vin", normalizeVin(valor))}
             />
             <MobileDraftCard label="ITEM" value={draft.item} />
             <MobileDraftCard label="DEFEITO" value={draft.defeito} />
@@ -525,8 +533,12 @@ export const ProcessosItens = ({ processos }: Props) => {
             <MobileDraftInput
               label="PROCESSO"
               value={draft.processo}
-              placeholder="processo"
-              onChange={(valor) => atualizarCampoDraft("processo", valor)}
+              placeholder="06RH"
+              compact
+              maxLength={4}
+              onChange={(valor) =>
+                atualizarCampoDraft("processo", normalizeProcesso(valor))
+              }
             />
             <MobileDraftCard label="HORA" value={formatTime(draft.createdAt)} />
           </div>
@@ -607,6 +619,7 @@ const StatusCard = ({
 type CampoLinhaProps = {
   placeholder: string;
   value: string;
+  className?: string;
   compact?: boolean;
   maxLength?: number;
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
@@ -616,6 +629,7 @@ type CampoLinhaProps = {
 const CampoLinha = ({
   placeholder,
   value,
+  className = "",
   compact = false,
   maxLength,
   inputMode,
@@ -624,7 +638,7 @@ const CampoLinha = ({
   <input
     className={`h-12 rounded-xl border border-slate-300 bg-emerald-50 px-3 text-center text-base font-semibold text-slate-900 outline-none placeholder:text-emerald-700 ${
       compact ? "mx-auto w-full max-w-[110px]" : "w-full"
-    }`}
+    } ${className}`}
     value={value}
     maxLength={maxLength}
     inputMode={inputMode}
@@ -725,3 +739,25 @@ const formatTime = (dateString: string) =>
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(dateString));
+
+const normalizeProcesso = (valor: string) =>
+  valor.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4);
+
+const normalizeVin = (valor: string) => {
+  const cleaned = valor.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  let letters = "";
+  let numbers = "";
+
+  for (const char of cleaned) {
+    if (/[A-Z]/.test(char) && letters.length < 3 && numbers.length === 0) {
+      letters += char;
+      continue;
+    }
+
+    if (/[0-9]/.test(char) && letters.length === 3 && numbers.length < 6) {
+      numbers += char;
+    }
+  }
+
+  return `${letters}${numbers}`;
+};

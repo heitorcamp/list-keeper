@@ -138,7 +138,7 @@ export const ListaCarros = ({
       </div>
 
       <div className="hidden overflow-x-auto rounded-[22px] border border-slate-300 sm:block">
-        <table className="min-w-[980px] w-full border-collapse text-center">
+        <table className="min-w-[860px] w-full border-collapse text-center">
           <thead className="bg-slate-100 text-slate-700">
             <tr>
               <HeaderCell>SEQ</HeaderCell>
@@ -182,15 +182,18 @@ export const ListaCarros = ({
                       <BodyCell>
                         <InlineInput
                           value={registro.vin}
-                          placeholder="vin"
-                          className="max-w-[120px]"
-                          onChange={(valor) => onUpdateField(registro.id, "vin", valor)}
+                          placeholder="ABC123456"
+                          className="max-w-[110px]"
+                          maxLength={9}
+                          onChange={(valor) =>
+                            onUpdateField(registro.id, "vin", normalizeVin(valor))
+                          }
                         />
                       </BodyCell>
-                      <BodyCell className="text-sm font-medium text-slate-900">
+                      <BodyCell className="max-w-[84px] whitespace-normal text-sm font-medium leading-tight text-slate-900">
                         {registro.item}
                       </BodyCell>
-                      <BodyCell className="text-sm font-medium text-slate-900">
+                      <BodyCell className="max-w-[100px] whitespace-normal text-sm font-medium leading-tight text-slate-900">
                         {registro.defeito}
                       </BodyCell>
                       <BodyCell>
@@ -240,9 +243,16 @@ export const ListaCarros = ({
                       <BodyCell>
                         <InlineInput
                           value={registro.processo}
-                          placeholder="processo"
-                          className="max-w-[138px]"
-                          onChange={(valor) => onUpdateField(registro.id, "processo", valor)}
+                          placeholder="00AA"
+                          className="max-w-[84px]"
+                          maxLength={4}
+                          onChange={(valor) =>
+                            onUpdateField(
+                              registro.id,
+                              "processo",
+                              normalizeProcesso(valor),
+                            )
+                          }
                         />
                       </BodyCell>
                       <BodyCell className="text-xs text-slate-600">
@@ -327,14 +337,21 @@ export const ListaCarros = ({
                   <MobileInputRow
                     label="VIN"
                     value={registro.vin}
-                    placeholder="add vin"
-                    onChange={(valor) => onUpdateField(registro.id, "vin", valor)}
+                    placeholder="AAA 123456"
+                    maxLength={9}
+                    onChange={(valor) =>
+                      onUpdateField(registro.id, "vin", normalizeVin(valor))
+                    }
                   />
                   <MobileInputRow
                     label="PROCESSO"
                     value={registro.processo}
-                    placeholder="processo"
-                    onChange={(valor) => onUpdateField(registro.id, "processo", valor)}
+                    placeholder="06RH"
+                    compact
+                    maxLength={4}
+                    onChange={(valor) =>
+                      onUpdateField(registro.id, "processo", normalizeProcesso(valor))
+                    }
                   />
                   <MobileInputRow
                     label="HMC TL"
@@ -1029,4 +1046,26 @@ const buildFileStamp = (date: Date) => {
   ].join("");
 
   return `${datePart}-${timePart}`;
+};
+
+const normalizeProcesso = (valor: string) =>
+  valor.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4);
+
+const normalizeVin = (valor: string) => {
+  const cleaned = valor.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  let letters = "";
+  let numbers = "";
+
+  for (const char of cleaned) {
+    if (/[A-Z]/.test(char) && letters.length < 3 && numbers.length === 0) {
+      letters += char;
+      continue;
+    }
+
+    if (/[0-9]/.test(char) && letters.length === 3 && numbers.length < 6) {
+      numbers += char;
+    }
+  }
+
+  return `${letters}${numbers}`;
 };
